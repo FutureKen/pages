@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>大米重金属污染报告解读</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Application Structure Plan: 
+        The application is structured thematically to guide the user through the HBBF report's findings on heavy metals in rice.
+        1.  **引言 (Introduction):** Sets the context.
+        2.  **主要发现 (Key Findings):** Presents core data on metal prevalence with a bar chart for immediate visual impact.
+        3.  **健康风险 (Health Risks):** Uses an accordion or tab-like structure for users to explore risks of each metal without overwhelming them.
+        4.  **如何选择更安全的大米 (Choosing Safer Rice):** Compares different rice types using lists and a bar chart for easy comparison.
+        5.  **"糙米悖论"与预煮米 (Brown Rice Paradox & Precooked Rice):** Dedicated section for these nuanced topics.
+        6.  **更安全的替代谷物 (Safer Alternative Grains):** Showcases alternatives with their benefits and a comparative chart, including cost considerations.
+        7.  **实用建议 (Practical Tips):** Actionable advice presented clearly.
+        8.  **结论与呼吁 (Conclusion & Call to Action):** Summarizes and calls for broader action.
+        This structure was chosen to break down complex information into digestible sections, allowing users to navigate based on their interest, from understanding the problem to finding solutions. Interactive charts and expandable sections enhance engagement and comprehension. The flow is logical: problem -> risks -> rice-specific solutions -> alternative solutions -> practical tips -> conclusion.
+    -->
+    <!-- Visualization & Content Choices:
+        - **引言:** Text summary. Goal: Context.
+        - **主要发现:** Bar chart (Chart.js) for metal prevalence (As, Cd, Pb, Hg). Text for FDA limit gap. Goal: Inform core findings. Interaction: Tooltips on chart.
+        - **健康风险:** Accordion/details tags for each metal. Bulleted lists for child/adult risks. Goal: Detail risks. Interaction: Expand/collapse.
+        - **如何选择更安全的大米:** Lists for "safer" vs "limit/avoid" rice. Bar chart (Chart.js) comparing avg. heavy metals in rice categories (CA Sushi/Calrose, SE US White, SE US Brown, Italian Arborio). Goal: Compare & Guide. Interaction: Tooltips.
+        - **"糙米悖论"与预煮米:** Text explanations. Goal: Clarify specific issues.
+        - **更安全的替代谷物:** Cards/list for alternatives (Quinoa, Barley, etc.) detailing benefits, metal reduction %, cost factor. Bar chart (Chart.js) comparing total heavy metal reduction of alternatives vs. rice. Goal: Offer solutions. Interaction: Tooltips.
+        - **实用建议:** Icon-styled list for cooking/dietary tips. Goal: Provide actionable advice.
+        - **结论与呼吁:** Text summary. Goal: Conclude and advocate.
+        All visualizations use Chart.js (Canvas). No SVG/Mermaid. This supports the designed structure by providing visual summaries and comparisons where data is presented, and interactive text elements for detailed explanations.
+    -->
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #FAF3E0; color: #4A4A4A; }
+        .brand-title { color: #8D7B68; }
+        .nav-link { color: #8D7B68; }
+        .nav-link:hover { color: #A9907E; }
+        .section-title { color: #8D7B68; border-bottom: 2px solid #C8B6A6; padding-bottom: 0.5rem; margin-bottom: 1rem; }
+        .content-card { background-color: #FDFBF5; border: 1px solid #E0D8C9; border-radius: 0.5rem; padding: 1.5rem; margin-bottom: 1rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .button-primary { background-color: #A9907E; color: white; padding: 0.5rem 1rem; border-radius: 0.25rem; transition: background-color 0.3s; }
+        .button-primary:hover { background-color: #8D7B68; }
+        details > summary { cursor: pointer; font-weight: bold; color: #8D7B68; margin-bottom: 0.5rem;}
+        details[open] > summary { margin-bottom: 0.75rem; }
+        .chart-container { position: relative; width: 100%; max-width: 600px; margin-left: auto; margin-right: auto; height: 300px; max-height: 400px; }
+        @media (min-width: 768px) { .chart-container { height: 350px; } }
+        .tab-button { padding: 0.5rem 1rem; margin-right: 0.5rem; border-radius: 0.25rem; cursor: pointer; background-color: #E0D8C9; color: #4A4A4A; }
+        .tab-button.active { background-color: #A9907E; color: white; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .sticky-nav { position: sticky; top: 0; z-index: 50; background-color: rgba(250, 243, 224, 0.9); backdrop-filter: blur(5px); }
+    </style>
+</head>
+<body class="antialiased">
+
+    <header class="sticky-nav shadow-md py-4 px-6">
+        <div class="container mx-auto flex flex-wrap justify-between items-center">
+            <h1 class="text-3xl font-bold brand-title">大米中的重金属：健康风险与安全选择</h1>
+            <nav class="mt-4 md:mt-0">
+                <ul class="flex space-x-4 md:space-x-6">
+                    <li><a href="#introduction" class="nav-link hover:underline">引言</a></li>
+                    <li><a href="#findings" class="nav-link hover:underline">主要发现</a></li>
+                    <li><a href="#health-risks" class="nav-link hover:underline">健康风险</a></li>
+                    <li><a href="#safer-rice" class="nav-link hover:underline">安全大米选择</a></li>
+                    <li><a href="#alternatives" class="nav-link hover:underline">替代谷物</a></li>
+                    <li><a href="#tips" class="nav-link hover:underline">实用建议</a></li>
+                    <li><a href="#conclusion" class="nav-link hover:underline">结论</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container mx-auto p-6">
+        <section id="introduction" class="mb-12 content-card">
+            <h2 class="text-2xl font-semibold section-title">引言：大米中重金属的隐忧</h2>
+            <p class="text-lg leading-relaxed mb-4">近期研究再次引发了人们对日常食品中重金属问题的关注。一份由"健康宝宝光明未来"（Healthy Babies Bright Futures, HBBF）于2025年5月发布的报告《您家大米中含有什么？热门品牌大米中的砷、镉、铅——以及9种更安全的谷物选择》更是加剧了公众对美国市售大米污染情况的担忧。该调查的核心发现令人警觉：在145个送检大米样本中，100%含有已知的有毒物质——砷。</p>
+            
+            <div class="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-md">
+                <h3 class="text-lg font-semibold mb-2 text-blue-700">📄 查看原始报告</h3>
+                <p class="mb-3">想要了解完整的研究细节和数据？</p>
+                <a href="https://www.hbbf.org/sites/default/files/2025-05/HBBF_Rice_Report_May2025.pdf" 
+                   target="_blank" 
+                   rel="noopener noreferrer"
+                   class="button-primary inline-flex items-center">
+                    <span class="mr-2">📖</span>
+                    下载HBBF原始报告 (PDF)
+                    <span class="ml-2">↗</span>
+                </a>
+            </div>
+            
+            <p class="text-lg leading-relaxed">大米是全球消费最广泛的固体食物，也是超过十亿儿童的主食。如此广泛的消费意味着任何程度的污染都可能演变成重大的公共卫生问题。本应用旨在概述HBBF的调查结果，详细说明大米中发现的重金属种类、相关的健康风险，并提供选择更安全大米品种和替代谷物的实用建议。</p>
+        </section>
+
+        <section id="findings" class="mb-12 content-card">
+            <h2 class="text-2xl font-semibold section-title">主要发现：美国大米中的重金属</h2>
+            <p class="text-lg leading-relaxed mb-4">HBBF的调查检测了四种有毒重金属，均在所分析的大米样本中检出：砷、镉、铅和汞。其中，砷的检出率达到100%，镉也高达99.3%。砷通常是检出浓度最高的重金属，其次是镉。</p>
+            <div class="mb-8">
+                <h3 class="text-xl font-semibold mb-2 text-center brand-title">大米样本中重金属检出率</h3>
+                <div class="chart-container">
+                    <canvas id="metalPrevalenceChart"></canvas>
+                </div>
+            </div>
+            <p class="text-lg leading-relaxed mb-4">一个关键问题是，超过四分之一（28%）的送检大米样本中无机砷含量超过了美国食品药品监督管理局（FDA）针对<strong class="text-[#A9907E]">婴儿米粉</strong>设定的100 ppb行动水平。然而，对于供大众消费的袋装或盒装大米本身，尚无相应的联邦砷含量限制。这可能导致使用市售大米自制婴儿米糊的父母在不知情的情况下，让婴儿摄入砷含量超标的食物。</p>
+            <p class="text-lg leading-relaxed">研究还发现，重金属含量因大米种类和产地而异。例如，一个藏红花调味米样本的铅含量比其他样本平均值高出32倍，表明调味料也可能引入污染物。</p>
+        </section>
+
+        <section id="health-risks" class="mb-12 content-card">
+            <h2 class="text-2xl font-semibold section-title">健康风险：重金属暴露的影响</h2>
+            <p class="text-lg leading-relaxed mb-6">HBBF报告强调，大米中重金属的主要健康问题源于长期、低水平的累积暴露，而非单次急性中毒。这在孕期、婴幼儿期等大脑和器官快速发育的脆弱阶段尤为关键。这些重金属（砷、镉、铅、汞）的混合物没有已知的安全摄入量，其累积暴露与癌症风险增加、神经发育损害（包括儿童智商下降）以及体内生物累积等多种严重健康问题相关。</p>
+            
+            <div id="healthRiskTabs" class="mb-4">
+                <button class="tab-button active" onclick="openRiskTab(event, 'arsenicRisk')">砷 (Arsenic)</button>
+                <button class="tab-button" onclick="openRiskTab(event, 'cadmiumRisk')">镉 (Cadmium)</button>
+                <button class="tab-button" onclick="openRiskTab(event, 'leadRisk')">铅 (Lead)</button>
+                <button class="tab-button" onclick="openRiskTab(event, 'mercuryRisk')">汞 (Mercury)</button>
+            </div>
+
+            <div id="arsenicRisk" class="tab-content active">
+                <h3 class="text-xl font-semibold mb-2 text-[#A9907E]">砷 (Arsenic)</h3>
+                <ul class="list-disc list-inside space-y-2 text-lg">
+                    <li><strong>对儿童的影响:</strong> 早期暴露与IQ降低、认知行为问题相关（可能造成永久性伤害），尤其在孕期影响神经发育。据估计，米制品中的砷可能导致美国0-6岁儿童损失高达920万IQ点。</li>
+                    <li><strong>对成人的影响:</strong> 增加肺癌、膀胱癌和皮肤癌风险；与心脏病和糖尿病风险增加相关。</li>
+                    <li><strong>普遍性:</strong> 大米中首要关注的形态是"无机砷"，毒性更强。</li>
+                </ul>
+            </div>
+            <div id="cadmiumRisk" class="tab-content">
+                <h3 class="text-xl font-semibold mb-2 text-[#A9907E]">镉 (Cadmium)</h3>
+                 <ul class="list-disc list-inside space-y-2 text-lg">
+                    <li><strong>对儿童的影响:</strong> 产前暴露与儿童语言技能、认知发展和整体表现能力受损相关。</li>
+                    <li><strong>对成人的影响:</strong> 对肾脏和骨骼有毒，也可能影响心脏；增加癌症风险。</li>
+                    <li><strong>普遍性:</strong> 在大米中普遍性及浓度仅次于砷。</li>
+                </ul>
+            </div>
+            <div id="leadRisk" class="tab-content">
+                <h3 class="text-xl font-semibold mb-2 text-[#A9907E]">铅 (Lead)</h3>
+                <ul class="list-disc list-inside space-y-2 text-lg">
+                    <li><strong>对儿童的影响:</strong> 众所周知的神经毒素，儿童血液中没有已知的安全水平。即便含量较低，也对发育中的大脑和神经系统有害。</li>
+                    <li><strong>对成人的影响:</strong> 神经毒性，心血管影响，肾损害。</li>
+                </ul>
+            </div>
+             <div id="mercuryRisk" class="tab-content">
+                <h3 class="text-xl font-semibold mb-2 text-[#A9907E]">汞 (Mercury)</h3>
+                <ul class="list-disc list-inside space-y-2 text-lg">
+                    <li><strong>对儿童的影响:</strong> 与铅类似，汞对发育中的大脑和神经系统有害。</li>
+                    <li><strong>对成人的影响:</strong> 神经损害，肾损害。</li>
+                </ul>
+            </div>
+            <p class="mt-6 text-lg leading-relaxed">报告特别指出，西班牙裔和亚裔家庭的儿童因饮食习惯，其膳食砷暴露量通常显著更高，这加剧了健康不平等问题。</p>
+        </section>
+
+        <section id="safer-rice" class="mb-12 content-card">
+            <h2 class="text-2xl font-semibold section-title">如何选择更安全的大米：品种和产地很重要</h2>
+            <p class="text-lg leading-relaxed mb-4">HBBF研究为消费者提供了重要指导，强调大米种类和产地是决定污染水平的关键因素。选择重金属含量较低的大米品种是降低风险的有效途径。</p>
+            
+            <div class="grid md:grid-cols-2 gap-6 mb-8">
+                <div>
+                    <h3 class="text-xl font-semibold mb-3 text-green-700">✅ 推荐的较安全大米品种 (总重金属含量较低)</h3>
+                    <ul class="list-disc list-inside space-y-2 text-lg bg-green-50 p-4 rounded-md border border-green-200">
+                        <li><strong>加州产大米:</strong> 如Calrose米、寿司米、加州产茉莉香米。平均总重金属含量较低 (例如，加州寿司米/Calrose米约65 ppb)。</li>
+                        <li><strong>泰国茉莉香米:</strong> 从泰国进口的茉莉香米通常污染水平较低。</li>
+                        <li><strong>印度巴斯马蒂米 (Basmati):</strong> 从印度进口的巴斯马蒂米也是优选。</li>
+                        <li class="font-semibold">这些较安全的大米平均比其他类型大米的总重金属含量低32%。</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-xl font-semibold mb-3 text-red-700">⚠️ 污染较高的大米类型 (限制或避免食用)</h3>
+                    <ul class="list-disc list-inside space-y-2 text-lg bg-red-50 p-4 rounded-md border border-red-200">
+                        <li><strong>美国东南部种植或标有"美国产"的白米:</strong> 平均总重金属含量约118 ppb。</li>
+                        <li><strong>糙米 (一般情况，尤其美国东南部/"美国产"):</strong> 平均总重金属含量最高，约151 ppb。砷易富集在米糠和胚芽。</li>
+                        <li><strong>意大利产阿尔博里奥米 (Arborio，用于烩饭):</strong> 平均总重金属含量约142 ppb。</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="mb-8">
+                <h3 class="text-xl font-semibold mb-2 text-center brand-title">不同类型大米平均总重金属含量对比 (ppb)</h3>
+                <div class="chart-container">
+                    <canvas id="riceComparisonChart"></canvas>
+                </div>
+            </div>
+            
+            <div id="brown-rice-precooked" class="mt-8 p-4 bg-amber-50 border border-amber-200 rounded-md">
+                 <h3 class="text-xl font-semibold mb-3 text-amber-700">"糙米悖论"与预煮米的担忧</h3>
+                <p class="text-lg leading-relaxed mb-3"><strong>糙米悖论:</strong> 糙米虽营养丰富，但其外层（米糠和胚芽）也更容易富集砷。这使得选择糙米可能在获取营养的同时增加了砷的摄入。报告建议，若食用糙米，可选择加州产的品种，其砷含量相对较低。</p>
+                <p class="text-lg leading-relaxed"><strong>预煮米的担忧:</strong> 速食米（5分钟）、预煮米（10分钟）和即食加热米饭（如微波米饭袋）因加工过程可能产生未受管制的有毒砷化合物（如DMMTA）或包装化学物浸出风险，HBBF报告不建议经常食用这些产品。</p>
+            </div>
+        </section>
+
+        <section id="alternatives" class="mb-12 content-card">
+            <h2 class="text-2xl font-semibold section-title">更安全的替代谷物：多样化您的餐盘</h2>
+            <p class="text-lg leading-relaxed mb-4">HBBF报告的一项关键建议是通过食用大米的替代品来使膳食谷物多样化。研究测试的九种替代谷物平均总重金属污染比大米样本低69%，且砷含量平均比大米低28倍。虽然这些替代谷物的镉含量可能略高于大米（约1.5倍），但整体重金属负担显著降低。</p>
+            
+            <div class="mb-8">
+                <h3 class="text-xl font-semibold mb-2 text-center brand-title">替代谷物与大米总重金属含量比较</h3>
+                 <div class="chart-container">
+                    <canvas id="alternativeGrainsChart"></canvas>
+                </div>
+            </div>
+
+            <h3 class="text-xl font-semibold mb-4 text-center brand-title">推荐的替代谷物及其益处</h3>
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="p-4 border rounded-lg bg-lime-50 border-lime-200">
+                    <h4 class="font-bold text-lg text-lime-700">藜麦 (Quinoa)</h4>
+                    <p>总重金属比大米低约71%。无麸质，味道温和，约15分钟煮熟。成本约是大米的7倍。</p>
+                </div>
+                <div class="p-4 border rounded-lg bg-lime-50 border-lime-200">
+                    <h4 class="font-bold text-lg text-lime-700">大麦 (Barley)</h4>
+                    <p>总重金属比大米低约82%。口感有嚼劲，价格相对实惠。成本约是大米的3倍。</p>
+                </div>
+                <div class="p-4 border rounded-lg bg-lime-50 border-lime-200">
+                    <h4 class="font-bold text-lg text-lime-700">蒸粗麦粉 (Couscous)</h4>
+                    <p>总重金属比大米低约70%。烹饪快速（5-10分钟），用途广泛。成本约是大米的7倍。</p>
+                </div>
+                <div class="p-4 border rounded-lg bg-lime-50 border-lime-200">
+                    <h4 class="font-bold text-lg text-lime-700">法老米 (Farro)</h4>
+                    <p>总重金属比大米低约68%。有坚果风味，口感有嚼劲。成本约是大米的5倍。</p>
+                </div>
+                <div class="p-4 border rounded-lg bg-lime-50 border-lime-200">
+                    <h4 class="font-bold text-lg text-lime-700">小米 (Millet)</h4>
+                    <p>总重金属比大米低约61%。无麸质，味道温和，价格相对实惠。成本约是大米的4倍。</p>
+                </div>
+                 <div class="p-4 border rounded-lg bg-lime-50 border-lime-200">
+                    <h4 class="font-bold text-lg text-lime-700">其他推荐</h4>
+                    <p>苋菜籽、荞麦、碾碎的干小麦（Bulgur）、斯佩耳特小麦、燕麦片和玉米糁（Polenta）也是不错的选择。</p>
+                </div>
+            </div>
+            <p class="mt-6 text-lg leading-relaxed">许多这些替代谷物是全谷物，提供宝贵营养，且没有糙米常有的高砷含量问题。然而，这些替代品通常比大米贵，平均价格是大米的五倍，这可能限制了低收入家庭的选择。</p>
+        </section>
+
+        <section id="tips" class="mb-12 content-card">
+            <h2 class="text-2xl font-semibold section-title">实用建议：减少重金属暴露</h2>
+            <p class="text-lg leading-relaxed mb-6">除了选择更安全的品种或替代品，HBBF报告还概述了几种家庭可以采取的实用措施来减少大米中重金属（尤其是砷）的暴露：</p>
+            <div class="grid md:grid-cols-2 gap-6">
+                <div>
+                    <h3 class="text-xl font-semibold mb-3 text-[#A9907E]">🍚 减少砷的烹饪方法</h3>
+                    <ul class="list-none space-y-3 text-lg">
+                        <li class="flex items-start"><span class="text-2xl mr-2">💧</span><div><strong>像煮意面一样煮饭:</strong> 用大量水煮饭（1杯米配6-10杯水），煮熟后沥干多余水分。此法可去除高达60%的无机砷。</div></li>
+                        <li class="flex items-start"><span class="text-2xl mr-2">⏳</span><div><strong>浸泡:</strong> 煮饭前将米浸泡至少30分钟（或过夜），弃掉浸泡水后再以上述方法烹煮，可进一步提高砷去除效果。</div></li>
+                        <li class="flex items-start"><span class="text-2xl mr-2">🚫</span><div><strong>仅淘米效果不佳:</strong> 报告指出，仅在烹饪前淘米对降低砷含量的效果微乎其微。</div></li>
+                    </ul>
+                    <p class="mt-3 text-md text-gray-600">注意：这些方法可能导致水溶性维生素和矿物质流失，需通过均衡膳食补充。</p>
+                </div>
+                <div>
+                    <h3 class="text-xl font-semibold mb-3 text-[#A9907E]">🥗 饮食策略</h3>
+                     <ul class="list-none space-y-3 text-lg">
+                        <li class="flex items-start"><span class="text-2xl mr-2">🥩</span><div><strong>搭配营养丰富的食物:</strong> 食用通过过量水烹煮法制作的米饭时，应搭配富含铁质（如瘦红肉、禽肉、豆类）和其他必需营养素的食物。</div></li>
+                        <li class="flex items-start"><span class="text-2xl mr-2">🌾</span><div><strong>食用多种其他全谷物:</strong> 如藜麦、大麦和法老米，增加营养并减少对单一污染源的依赖。</div></li>
+                        <li class="flex items-start"><span class="text-2xl mr-2">🥦</span><div><strong>摄入富含保护性营养素的食物:</strong> 钙、锌、B族维生素和维生素C等（存在于瘦肉、乳制品、绿叶蔬菜、豆类、水果中）可能有助于减少身体对重金属的吸收或促进其排出。</div></li>
+                        <li class="flex items-start"><span class="text-2xl mr-2">🍪</span><div><strong>避免或限制某些米基加工食品:</strong> 如米饼干、米糕和用糙米糖浆增甜的食品（某些婴儿配方奶粉和谷物棒中可能含有）。</div></li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section id="conclusion" class="mb-12 content-card">
+            <h2 class="text-2xl font-semibold section-title">结论与呼吁：明智选择，健康饮食</h2>
+            <p class="text-lg leading-relaxed mb-4">2025年5月的HBBF报告提醒我们，作为全球主要食粮的大米，也可能是接触有毒重金属（尤其是无机砷和镉）的重要来源。美国市售大米普遍存在污染，对孕妇、婴幼儿等脆弱人群构成潜在健康风险。</p>
+            <p class="text-lg leading-relaxed mb-4">然而，报告也为消费者提供了明确可行的信息。通过了解更安全的大米品种、替代谷物的好处以及有效的家庭烹饪方法，家庭可以做出明智的膳食选择，显著减少污染物暴露。</p>
+            <p class="text-lg leading-relaxed">尽管个人行动至关重要，但HBBF报告也强调了更广泛的系统性变革的迫切需求，呼吁FDA等监管机构采取更有力的行动，例如为所有大米（不仅仅是婴儿米粉）设定砷和镉的保护性限值，并要求生产商定期检测并公开结果。确保这种主食对每个人的安全，是保护当前和未来几代人免受重金属可预防危害的一项基本且可实现的目标。</p>
+        </section>
+    </main>
+
+    <footer class="bg-[#8D7B68] text-white py-8 text-center">
+        <p>&copy; 2025 大米重金属报告解读。信息基于Healthy Babies Bright Futures (HBBF) 2025年5月报告。</p>
+        <p class="text-sm mt-2">
+            <a href="https://www.hbbf.org/sites/default/files/2025-05/HBBF_Rice_Report_May2025.pdf" 
+               target="_blank" 
+               rel="noopener noreferrer"
+               class="text-white underline hover:text-blue-200">
+                查看原始HBBF报告 (PDF)
+            </a>
+        </p>
+        <p class="text-sm mt-2">本应用仅供参考，不能替代专业医疗或营养建议。</p>
+    </footer>
+
+    <script>
+        // Chart for Metal Prevalence
+        const metalPrevalenceCtx = document.getElementById('metalPrevalenceChart').getContext('2d');
+        new Chart(metalPrevalenceCtx, {
+            type: 'bar',
+            data: {
+                labels: ['砷 (Arsenic)', '镉 (Cadmium)', '铅 (Lead)', '汞 (Mercury)'],
+                datasets: [{
+                    label: '检出率 (%)',
+                    data: [100, 99.3, 34, 39],
+                    backgroundColor: ['#A9907E', '#C8B6A6', '#A9907E', '#C8B6A6'],
+                    borderColor: ['#8D7B68', '#A9907E', '#8D7B68', '#A9907E'],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        title: { display: true, text: '检出率 (%)', font: { size: 14, family: 'Inter' }, color: '#4A4A4A'}
+                    },
+                    x: { ticks: { font: { family: 'Inter' }, color: '#4A4A4A' } }
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ': ' + context.formattedValue + '%';
+                            }
+                        },
+                        titleFont: { family: 'Inter' },
+                        bodyFont: { family: 'Inter' }
+                    }
+                }
+            }
+        });
+
+        // Chart for Rice Comparison
+        const riceComparisonCtx = document.getElementById('riceComparisonChart').getContext('2d');
+        new Chart(riceComparisonCtx, {
+            type: 'bar',
+            data: {
+                labels: ['加州寿司/Calrose米', '美国东南部白米', '美国东南部糙米', '意大利Arborio米'],
+                datasets: [{
+                    label: '平均总重金属含量 (ppb)',
+                    data: [65, 118, 151, 142],
+                    backgroundColor: ['#82C99F', '#F2A09A', '#D97777', '#F2C49A'], // Green, Light Red, Darker Red, Orange-ish
+                    borderColor: ['#5AA67B', '#D97777', '#BF5A5A', '#D9A67B'],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: { display: true, text: '平均总重金属含量 (ppb)', font: { size: 14, family: 'Inter' }, color: '#4A4A4A' }
+                    },
+                    x: { ticks: { font: { family: 'Inter', size: 10 }, color: '#4A4A4A', 
+                        callback: function(value, index, values) {
+                            const label = this.getLabelForValue(value);
+                            if (label.length > 16) { // Wrap label if too long
+                                const words = label.split(' ');
+                                let lines = [''];
+                                let currentLine = 0;
+                                words.forEach(word => {
+                                    if ((lines[currentLine] + word).length > 16) {
+                                        currentLine++;
+                                        lines[currentLine] = '';
+                                    }
+                                    lines[currentLine] += word + ' ';
+                                });
+                                return lines.map(line => line.trim());
+                            }
+                            return label;
+                        }
+                    }}
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ': ' + context.formattedValue + ' ppb';
+                            }
+                        },
+                        titleFont: { family: 'Inter' },
+                        bodyFont: { family: 'Inter' }
+                    }
+                }
+            }
+        });
+
+        // Chart for Alternative Grains
+        const alternativeGrainsCtx = document.getElementById('alternativeGrainsChart').getContext('2d');
+        new Chart(alternativeGrainsCtx, {
+            type: 'bar',
+            data: {
+                labels: ['大米 (参考)', '替代谷物 (平均)'],
+                datasets: [{
+                    label: '总重金属含量 (相对)',
+                    data: [100, 31], // Rice as 100%, Alternatives 69% less -> 31%
+                    backgroundColor: ['#F2A09A', '#82C99F'],
+                    borderColor: ['#D97777', '#5AA67B'],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                indexAxis: 'y',
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        max:100,
+                        title: { display: true, text: '相对总重金属含量 (%)', font: { size: 14, family: 'Inter' }, color: '#4A4A4A' }
+                    },
+                    y: { ticks: { font: { family: 'Inter' }, color: '#4A4A4A' } }
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                if (context.label === '大米 (参考)') return '大米作为参考基线 (100%)';
+                                return '替代谷物平均: 比大米低约69%';
+                            }
+                        },
+                        titleFont: { family: 'Inter' },
+                        bodyFont: { family: 'Inter' }
+                    }
+                }
+            }
+        });
+        
+        // Tab functionality for health risks
+        function openRiskTab(event, riskName) {
+            let i, tabcontent, tablinks;
+            tabcontent = document.getElementsByClassName("tab-content");
+            for (i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].style.display = "none";
+                tabcontent[i].classList.remove("active");
+            }
+            tablinks = document.getElementsByClassName("tab-button");
+            for (i = 0; i < tablinks.length; i++) {
+                tablinks[i].classList.remove("active");
+            }
+            document.getElementById(riskName).style.display = "block";
+            document.getElementById(riskName).classList.add("active");
+            event.currentTarget.classList.add("active");
+        }
+
+        // Smooth scroll for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href');
+                const targetElement = document.querySelector(targetId);
+                if (targetElement) {
+                    // Calculate offset for sticky header
+                    const headerOffset = document.querySelector('header').offsetHeight;
+                    const elementPosition = targetElement.getBoundingClientRect().top;
+                    const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+        
+                    window.scrollTo({
+                        top: offsetPosition,
+                        behavior: "smooth"
+                    });
+                }
+            });
+        });
+
+    </script>
+</body>
+</html>
